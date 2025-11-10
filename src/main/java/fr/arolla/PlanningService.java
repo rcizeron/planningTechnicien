@@ -10,7 +10,15 @@ import java.util.Optional;
 
 public class PlanningService {
 
-    private PlanningRepository planningRepository;
+    private final PlanningRepository planningRepository;
+
+    public PlanningService(PlanningRepository repository) {
+        this.planningRepository = repository;
+    }
+
+    public PlanningService() {
+        this.planningRepository = new PlanningRepository();
+    }
 
     public void save(PlanningRequest request) {
 
