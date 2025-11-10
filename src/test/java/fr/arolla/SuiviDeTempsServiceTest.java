@@ -1,9 +1,14 @@
 package fr.arolla;
 
-import fr.arolla.domain.Absences;
-import fr.arolla.domain.PlageHoraire;
-import fr.arolla.domain.PlanningDeBase;
-import fr.arolla.domain.SortiesAstreintes;
+import fr.arolla.dao.PlanningSQLRepository;
+import fr.arolla.domain.SuiviDeTempsService;
+import fr.arolla.domain.entities.Absences;
+import fr.arolla.domain.entities.Evp;
+import fr.arolla.domain.entities.PlageHoraire;
+import fr.arolla.domain.entities.PlanningDeBase;
+import fr.arolla.domain.entities.SortiesAstreintes;
+import fr.arolla.domain.entities.SuiviDeTemps;
+import fr.arolla.domain.entities.SuiviDeTempsRequest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -28,13 +33,13 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class PlanningServiceTest {
+class SuiviDeTempsServiceTest {
 
     @Mock
     private PlanningSQLRepository repository;
 
     @InjectMocks
-    private PlanningService service;
+    private SuiviDeTempsService service;
 
     @Test
     void collecter_nullRequest_throws() {
@@ -44,7 +49,7 @@ class PlanningServiceTest {
 
     @Test
     void collecter_invalidIds_throwsWithMessages() {
-        PlanningRequest request = new PlanningRequest(0, 0, null, null, null, null);
+        SuiviDeTempsRequest request = new SuiviDeTempsRequest(0, 0, null, null, null, null);
         InvalidParameterException ex = assertThrows(InvalidParameterException.class, () -> service.collecter(request));
         String msg = ex.getMessage();
         // vérifie que les deux messages d'erreur sur les ids sont présents
@@ -61,12 +66,12 @@ class PlanningServiceTest {
 
         PlanningDeBase base = new PlanningDeBase(List.of(bad));
 
-        PlanningRequest request = new PlanningRequest(1,
-                                                      1,
-                                                      base,
-                                                      new Absences(List.of()),
-                                                      new SortiesAstreintes(List.of()),
-                                                      List.of());
+        SuiviDeTempsRequest request = new SuiviDeTempsRequest(1,
+                                                              1,
+                                                              base,
+                                                              new Absences(List.of()),
+                                                              new SortiesAstreintes(List.of()),
+                                                              List.of());
         InvalidParameterException ex = assertThrows(InvalidParameterException.class, () -> service.collecter(request));
         String msg = ex.getMessage();
         assertTrue(msg.contains(
@@ -81,12 +86,12 @@ class PlanningServiceTest {
         Evp emptyType = new Evp("", LocalDateTime.now(), "");
         Evp noDate = new Evp("type", null, "");
 
-        PlanningRequest request = new PlanningRequest(1,
-                                                      1,
-                                                      new PlanningDeBase(List.of()),
-                                                      new Absences(List.of()),
-                                                      new SortiesAstreintes(List.of()),
-                                                      Arrays.asList(nullEvp, emptyType, noDate));
+        SuiviDeTempsRequest request = new SuiviDeTempsRequest(1,
+                                                              1,
+                                                              new PlanningDeBase(List.of()),
+                                                              new Absences(List.of()),
+                                                              new SortiesAstreintes(List.of()),
+                                                              Arrays.asList(nullEvp, emptyType, noDate));
 
         InvalidParameterException ex = assertThrows(InvalidParameterException.class, () -> service.collecter(request));
         String msg = ex.getMessage();
@@ -108,7 +113,12 @@ class PlanningServiceTest {
         PlanningDeBase basePlage = new PlanningDeBase(List.of(base));
         SortiesAstreintes astPlage = new SortiesAstreintes(List.of(ast));
 
-        PlanningRequest request = new PlanningRequest(1, 1, basePlage, new Absences(List.of()), astPlage, List.of());
+        SuiviDeTempsRequest request = new SuiviDeTempsRequest(1,
+                                                              1,
+                                                              basePlage,
+                                                              new Absences(List.of()),
+                                                              astPlage,
+                                                              List.of());
         InvalidParameterException ex = assertThrows(InvalidParameterException.class, () -> service.collecter(request));
         String msg = ex.getMessage();
         assertTrue(msg.contains("Chevauchement entre planningDeBase[0] et sortiesAstreintes[0]") || msg.contains(
@@ -131,15 +141,20 @@ class PlanningServiceTest {
         PlanningDeBase basePlage = new PlanningDeBase(List.of(base));
         SortiesAstreintes astPlage = new SortiesAstreintes(List.of(ast));
 
-        PlanningRequest request = new PlanningRequest(10, 42, basePlage, new Absences(List.of()), astPlage, List.of());
+        SuiviDeTempsRequest request = new SuiviDeTempsRequest(10,
+                                                              42,
+                                                              basePlage,
+                                                              new Absences(List.of()),
+                                                              astPlage,
+                                                              List.of());
 
         when(repository.findById(10, 42)).thenReturn(Optional.empty());
 
         service.collecter(request);
 
-        ArgumentCaptor<PlanningDTO> captor = ArgumentCaptor.forClass(PlanningDTO.class);
+        ArgumentCaptor<SuiviDeTemps> captor = ArgumentCaptor.forClass(SuiviDeTemps.class);
         verify(repository).save(captor.capture());
-        PlanningDTO saved = captor.getValue();
+        SuiviDeTemps saved = captor.getValue();
         assertEquals(10, saved.idSemaine());
         assertEquals(42, saved.idTechnicien());
         assertEquals(6.0, saved.nbHeuresTravaillees());
@@ -155,22 +170,22 @@ class PlanningServiceTest {
         PlanningDeBase basePlage = new PlanningDeBase(List.of(base));
 
 
-        PlanningRequest request = new PlanningRequest(20,
-                                                      7,
-                                                      basePlage,
-                                                      new Absences(List.of()),
-                                                      new SortiesAstreintes(List.of()),
-                                                      List.of());
+        SuiviDeTempsRequest request = new SuiviDeTempsRequest(20,
+                                                              7,
+                                                              basePlage,
+                                                              new Absences(List.of()),
+                                                              new SortiesAstreintes(List.of()),
+                                                              List.of());
 
         // existing planning has statut different from EN_ATTENTE
-        PlanningDTO existing = new PlanningDTO(20, 7, null, null, null, null, 0.0, "VALIDE");
+        SuiviDeTemps existing = new SuiviDeTemps(20, 7, null, null, null, null, 0.0, "VALIDE");
         when(repository.findById(20, 7)).thenReturn(Optional.of(existing));
 
         service.collecter(request);
 
-        ArgumentCaptor<PlanningDTO> captor = ArgumentCaptor.forClass(PlanningDTO.class);
+        ArgumentCaptor<SuiviDeTemps> captor = ArgumentCaptor.forClass(SuiviDeTemps.class);
         verify(repository).save(captor.capture());
-        PlanningDTO saved = captor.getValue();
+        SuiviDeTemps saved = captor.getValue();
         assertEquals("A_CONFIRMER", saved.statut());
     }
 

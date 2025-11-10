@@ -1,6 +1,7 @@
-package fr.arolla;
+package fr.arolla.dao;
 
-import fr.arolla.domain.PlageHoraire;
+import fr.arolla.domain.entities.Evp;
+import fr.arolla.domain.entities.PlageHoraire;
 
 import java.util.List;
 

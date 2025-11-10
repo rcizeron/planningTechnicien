@@ -1,8 +1,8 @@
-package fr.arolla.domain;
+package fr.arolla.domain.entities;
 
 import java.util.List;
 
-public record PlanningDeBase(
+public record SortiesAstreintes(
         List<PlageHoraire> plagesHoraire
 ) implements PlagesHoraire {
     @Override
@@ -12,6 +12,6 @@ public record PlanningDeBase(
 
     @Override
     public String getName() {
-        return "planningDeBase";
+        return "sortiesAstreintes";
     }
 }

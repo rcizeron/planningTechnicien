@@ -1,4 +1,4 @@
-package fr.arolla.domain;
+package fr.arolla.domain.entities;
 
 import java.util.ArrayList;
 import java.util.Comparator;

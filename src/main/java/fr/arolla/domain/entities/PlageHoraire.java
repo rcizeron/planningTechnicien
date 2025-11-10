@@ -1,4 +1,4 @@
-package fr.arolla.domain;
+package fr.arolla.domain.entities;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;

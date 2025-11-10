@@ -1,12 +1,8 @@
-package fr.arolla;
-
-import fr.arolla.domain.Absences;
-import fr.arolla.domain.PlanningDeBase;
-import fr.arolla.domain.SortiesAstreintes;
+package fr.arolla.domain.entities;
 
 import java.util.List;
 
-public record PlanningRequest(
+public record SuiviDeTempsRequest(
         int idSemaine,
         int idTechnicien,
         PlanningDeBase planningDeBase,

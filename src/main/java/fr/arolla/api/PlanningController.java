@@ -1,13 +1,15 @@
-package fr.arolla;
+package fr.arolla.api;
+
+import fr.arolla.domain.SuiviDeTempsService;
 
 public class PlanningController {
 
-    private final PlanningService planningService = new PlanningService();
+    private final SuiviDeTempsService suiviDeTempsService = new SuiviDeTempsService();
 
     // POST /api/plannings
     public PlanningResponse createPlanning(PlanningRequest planningRequest) {
         try {
-            planningService.collecter(planningRequest);
+            suiviDeTempsService.collecter(planningRequest.toDomain());
             return new PlanningResponse(201, "Planning créé avec succès.");
         } catch (IllegalArgumentException e) {
             return new PlanningResponse(400, "Erreur: " + e.getMessage());

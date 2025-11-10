@@ -1,6 +1,9 @@
-package fr.arolla;
+package fr.arolla.domain;
 
-import fr.arolla.domain.PlageHoraire;
+import fr.arolla.domain.entities.Evp;
+import fr.arolla.domain.entities.PlageHoraire;
+import fr.arolla.domain.entities.SuiviDeTemps;
+import fr.arolla.domain.entities.SuiviDeTempsRequest;
 
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
@@ -8,19 +11,18 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-public class PlanningService {
+public class SuiviDeTempsService {
 
-    private final PlanningSQLRepository planningRepository;
+    private SuiviDeTempsRepository suiviDeTempsRepository;
 
-    public PlanningService(PlanningSQLRepository repository) {
-        this.planningRepository = repository;
+    public SuiviDeTempsService(SuiviDeTempsRepository repository) {
+        this.suiviDeTempsRepository = repository;
     }
 
-    public PlanningService() {
-        this.planningRepository = new PlanningSQLRepository();
+    public SuiviDeTempsService() {
     }
 
-    public void collecter(PlanningRequest request) {
+    public void collecter(SuiviDeTempsRequest request) {
 
         if (request == null) {
             throw new InvalidParameterException("Le planning ne peut pas être null");
@@ -87,23 +89,23 @@ public class PlanningService {
         double totalHeures = Math.max(0, minutes / 60.0);
         totalHeures = Math.round(totalHeures * 100.0) / 100.0;
 
-        Optional<PlanningDTO> existing = planningRepository.findById(request.idSemaine(), request.idTechnicien());
+        Optional<SuiviDeTemps> existing = suiviDeTempsRepository.findById(request.idSemaine(), request.idTechnicien());
 
         String statut = existing.isEmpty() ||
                         Objects.equals(existing.get().statut(), "EN_ATTENTE") ? "EN_ATTENTE" : "A_CONFIRMER";
 
-        PlanningDTO dto = new PlanningDTO(
+        SuiviDeTemps suiviDeTempsASauvegarder = new SuiviDeTemps(
                 request.idSemaine(),
                 request.idTechnicien(),
-                request.planningDeBase().plagesHoraire(),
-                request.absences().plagesHoraire(),
-                request.sortiesAstreintes().plagesHoraire(),
+                request.planningDeBase(),
+                request.absences(),
+                request.sortiesAstreintes(),
                 request.evps(),
                 totalHeures,
                 statut
         );
 
-        planningRepository.save(dto);
+        suiviDeTempsRepository.save(suiviDeTempsASauvegarder);
     }
 
     private long minutesForList(List<PlageHoraire> plages) {
