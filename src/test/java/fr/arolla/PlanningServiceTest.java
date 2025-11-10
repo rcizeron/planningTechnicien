@@ -37,15 +37,15 @@ class PlanningServiceTest {
     private PlanningService service;
 
     @Test
-    void save_nullRequest_throws() {
-        assertThrows(InvalidParameterException.class, () -> service.save(null));
+    void collecter_nullRequest_throws() {
+        assertThrows(InvalidParameterException.class, () -> service.collecter(null));
         verifyNoInteractions(repository);
     }
 
     @Test
-    void save_invalidIds_throwsWithMessages() {
+    void collecter_invalidIds_throwsWithMessages() {
         PlanningRequest request = new PlanningRequest(0, 0, null, null, null, null);
-        InvalidParameterException ex = assertThrows(InvalidParameterException.class, () -> service.save(request));
+        InvalidParameterException ex = assertThrows(InvalidParameterException.class, () -> service.collecter(request));
         String msg = ex.getMessage();
         // vérifie que les deux messages d'erreur sur les ids sont présents
         assertTrue(msg.contains("idSemaine doit être supérieur à 0"));
@@ -54,7 +54,7 @@ class PlanningServiceTest {
     }
 
     @Test
-    void save_plageWithBadDates_throws() {
+    void collecter_plageWithBadDates_throws() {
         LocalDateTime start = LocalDateTime.of(2025, 1, 2, 12, 0);
         LocalDateTime end = LocalDateTime.of(2025, 1, 2, 10, 0); // end before start
         PlageHoraire bad = new PlageHoraire(start, end);
@@ -67,7 +67,7 @@ class PlanningServiceTest {
                                                       new Absences(List.of()),
                                                       new SortiesAstreintes(List.of()),
                                                       List.of());
-        InvalidParameterException ex = assertThrows(InvalidParameterException.class, () -> service.save(request));
+        InvalidParameterException ex = assertThrows(InvalidParameterException.class, () -> service.collecter(request));
         String msg = ex.getMessage();
         assertTrue(msg.contains("planningDeBase[0] : dateDebut doit être avant dateFin") || msg.contains(
                 "planningDeBase[0] :"));
@@ -76,7 +76,7 @@ class PlanningServiceTest {
     }
 
     @Test
-    void save_evpsValidation_throws() {
+    void collecter_evpsValidation_throws() {
         Evp nullEvp = null;
         Evp emptyType = new Evp("", LocalDateTime.now(), "");
         Evp noDate = new Evp("type", null, "");
@@ -88,7 +88,7 @@ class PlanningServiceTest {
                                                       new SortiesAstreintes(List.of()),
                                                       Arrays.asList(nullEvp, emptyType, noDate));
 
-        InvalidParameterException ex = assertThrows(InvalidParameterException.class, () -> service.save(request));
+        InvalidParameterException ex = assertThrows(InvalidParameterException.class, () -> service.collecter(request));
         String msg = ex.getMessage();
         assertTrue(msg.contains("evps[0] est null"));
         assertTrue(msg.contains("evps[1].type est vide") || msg.contains("evps[1].type"));
@@ -97,7 +97,7 @@ class PlanningServiceTest {
     }
 
     @Test
-    void save_crossOverlap_throws() {
+    void collecter_crossOverlap_throws() {
         LocalDateTime a1 = LocalDateTime.of(2025, 3, 3, 9, 0);
         LocalDateTime a2 = LocalDateTime.of(2025, 3, 3, 12, 0);
         LocalDateTime b1 = LocalDateTime.of(2025, 3, 3, 11, 0);
@@ -109,7 +109,7 @@ class PlanningServiceTest {
         SortiesAstreintes astPlage = new SortiesAstreintes(List.of(ast));
 
         PlanningRequest request = new PlanningRequest(1, 1, basePlage, new Absences(List.of()), astPlage, List.of());
-        InvalidParameterException ex = assertThrows(InvalidParameterException.class, () -> service.save(request));
+        InvalidParameterException ex = assertThrows(InvalidParameterException.class, () -> service.collecter(request));
         String msg = ex.getMessage();
         assertTrue(msg.contains("Chevauchement entre planningDeBase[0] et sortiesAstreintes[0]") || msg.contains(
                 "Chevauchement"));
@@ -117,7 +117,7 @@ class PlanningServiceTest {
     }
 
     @Test
-    void save_success_newPlanning_setsEnAttente_andCalculatesHours() {
+    void collecter_success_newPlanning_setsEnAttente_andCalculatesHours() {
         // planningDeBase: 08:00-12:00 (4h)
         // sortiesAstreintes: 13:00-15:00 (2h)
         // absences: none
@@ -135,7 +135,7 @@ class PlanningServiceTest {
 
         when(repository.findById(10, 42)).thenReturn(Optional.empty());
 
-        service.save(request);
+        service.collecter(request);
 
         ArgumentCaptor<PlanningDTO> captor = ArgumentCaptor.forClass(PlanningDTO.class);
         verify(repository).save(captor.capture());
@@ -147,7 +147,7 @@ class PlanningServiceTest {
     }
 
     @Test
-    void save_existingPlanning_notEnAttente_setsAConfirmer() {
+    void collecter_existingPlanning_notEnAttente_setsAConfirmer() {
         LocalDateTime d1 = LocalDateTime.of(2025, 6, 6, 8, 0);
         LocalDateTime d2 = LocalDateTime.of(2025, 6, 6, 12, 0);
         PlageHoraire base = new PlageHoraire(d1, d2);
@@ -166,7 +166,7 @@ class PlanningServiceTest {
         PlanningDTO existing = new PlanningDTO(20, 7, null, null, null, null, 0.0, "VALIDE");
         when(repository.findById(20, 7)).thenReturn(Optional.of(existing));
 
-        service.save(request);
+        service.collecter(request);
 
         ArgumentCaptor<PlanningDTO> captor = ArgumentCaptor.forClass(PlanningDTO.class);
         verify(repository).save(captor.capture());

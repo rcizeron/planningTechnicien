@@ -20,7 +20,7 @@ public class PlanningService {
         this.planningRepository = new PlanningSQLRepository();
     }
 
-    public void save(PlanningRequest request) {
+    public void collecter(PlanningRequest request) {
 
         if (request == null) {
             throw new InvalidParameterException("Le planning ne peut pas être null");
