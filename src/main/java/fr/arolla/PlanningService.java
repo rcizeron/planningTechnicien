@@ -1,6 +1,7 @@
 package fr.arolla;
 
 import fr.arolla.domain.PlageHoraire;
+import fr.arolla.domain.PlagesHoraire;
 
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
@@ -71,17 +72,13 @@ public class PlanningService {
         }
 
         // cross-list overlap checks: ensure no overlap between planningDeBase and astreintes
-        checkCrossOverlaps("planningDeBase",
-                           request.planningDeBase().plagesHoraire(),
-                           "sortiesAstreintes",
-                           request.sortiesAstreintes().plagesHoraire(),
+        checkCrossOverlaps(request.planningDeBase(),
+                           request.sortiesAstreintes(),
                            errors);
 
         // cross-list overlap checks: ensure no overlap between absences and astreintes
-        checkCrossOverlaps("absences",
-                           request.absences().plagesHoraire(),
-                           "sortiesAstreintes",
-                           request.sortiesAstreintes().plagesHoraire(),
+        checkCrossOverlaps(request.absences(),
+                           request.sortiesAstreintes(),
                            errors);
 
         if (!errors.isEmpty()) {
@@ -115,11 +112,15 @@ public class PlanningService {
         planningRepository.save(dto);
     }
 
-    private void checkCrossOverlaps(String nameA,
-                                    List<PlageHoraire> a,
-                                    String nameB,
-                                    List<PlageHoraire> b,
+    private void checkCrossOverlaps(PlagesHoraire plageA,
+                                    PlagesHoraire plageB,
                                     List<String> errors) {
+
+        String nameA = plageA.getName();
+        String nameB = plageB.getName();
+        List<PlageHoraire> a = plageA.getPlagesHoraire();
+        List<PlageHoraire> b = plageB.getPlagesHoraire();
+
         if (a == null || b == null) return;
 
         for (int i = 0; i < a.size(); i++) {

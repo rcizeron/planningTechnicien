@@ -4,7 +4,7 @@ import java.util.List;
 
 public record SortiesAstreintes(
         List<PlageHoraire> plagesHoraire
-) implements PlagesHoraireValidation {
+) implements PlagesHoraire {
     @Override
     public List<PlageHoraire> getPlagesHoraire() {
         return plagesHoraire;
