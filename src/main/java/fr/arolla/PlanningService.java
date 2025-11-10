@@ -1,7 +1,6 @@
 package fr.arolla;
 
 import fr.arolla.domain.PlageHoraire;
-import fr.arolla.domain.PlagesHoraire;
 
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
@@ -50,9 +49,9 @@ public class PlanningService {
             throw new InvalidParameterException("Validation errors: " + String.join("; ", errors));
         }
 
-        errors.addAll(request.planningDeBase().validerPlage());
-        errors.addAll(request.absences().validerPlage());
-        errors.addAll(request.sortiesAstreintes().validerPlage());
+        errors.addAll(request.planningDeBase().verifierPlage());
+        errors.addAll(request.absences().verifierPlage());
+        errors.addAll(request.sortiesAstreintes().verifierPlage());
 
 
         if (request.evps() != null) {
@@ -72,14 +71,9 @@ public class PlanningService {
         }
 
         // cross-list overlap checks: ensure no overlap between planningDeBase and astreintes
-        checkCrossOverlaps(request.planningDeBase(),
-                           request.sortiesAstreintes(),
-                           errors);
-
+        errors.addAll(request.planningDeBase().verifierChevauchementCroise(request.sortiesAstreintes()));
         // cross-list overlap checks: ensure no overlap between absences and astreintes
-        checkCrossOverlaps(request.absences(),
-                           request.sortiesAstreintes(),
-                           errors);
+        errors.addAll(request.absences().verifierChevauchementCroise(request.sortiesAstreintes()));
 
         if (!errors.isEmpty()) {
             throw new InvalidParameterException("Validation errors: " + String.join("; ", errors));
@@ -110,34 +104,6 @@ public class PlanningService {
         );
 
         planningRepository.save(dto);
-    }
-
-    private void checkCrossOverlaps(PlagesHoraire plageA,
-                                    PlagesHoraire plageB,
-                                    List<String> errors) {
-
-        String nameA = plageA.getName();
-        String nameB = plageB.getName();
-        List<PlageHoraire> a = plageA.getPlagesHoraire();
-        List<PlageHoraire> b = plageB.getPlagesHoraire();
-
-        if (a == null || b == null) return;
-
-        for (int i = 0; i < a.size(); i++) {
-            PlageHoraire pa = a.get(i);
-            if (pa == null || pa.dateDebut() == null || pa.dateFin() == null) continue;
-            for (int j = 0; j < b.size(); j++) {
-                PlageHoraire pb = b.get(j);
-                if (pb == null || pb.dateDebut() == null || pb.dateFin() == null) continue;
-                if (overlaps(pa, pb)) {
-                    errors.add("Chevauchement entre " + nameA + "[" + i + "] et " + nameB + "[" + j + "]");
-                }
-            }
-        }
-    }
-
-    private boolean overlaps(PlageHoraire a, PlageHoraire b) {
-        return !a.dateFin().isBefore(b.dateDebut()) && !b.dateFin().isBefore(a.dateDebut());
     }
 
     private long minutesForList(List<PlageHoraire> plages) {

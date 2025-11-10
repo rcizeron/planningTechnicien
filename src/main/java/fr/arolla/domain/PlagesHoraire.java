@@ -11,7 +11,7 @@ public interface PlagesHoraire {
 
     String getName();
 
-    default List<String> validerPlage() {
+    default List<String> verifierPlage() {
         var plages = getPlagesHoraire();
         var name = getName();
 
@@ -54,4 +54,32 @@ public interface PlagesHoraire {
         return errors;
     }
 
+    default List<String> verifierChevauchementCroise(PlagesHoraire other) {
+
+        String nameA = this.getName();
+        String nameB = other.getName();
+        List<PlageHoraire> a = this.getPlagesHoraire();
+        List<PlageHoraire> b = other.getPlagesHoraire();
+
+        if (a == null || b == null) return List.of();
+
+        List<String> errors = new ArrayList<>();
+
+        for (int i = 0; i < a.size(); i++) {
+            PlageHoraire pa = a.get(i);
+            if (pa == null || pa.dateDebut() == null || pa.dateFin() == null) continue;
+            for (int j = 0; j < b.size(); j++) {
+                PlageHoraire pb = b.get(j);
+                if (pb == null || pb.dateDebut() == null || pb.dateFin() == null) continue;
+                if (overlaps(pa, pb)) {
+                    errors.add("Chevauchement entre " + nameA + "[" + i + "] et " + nameB + "[" + j + "]");
+                }
+            }
+        }
+        return errors;
+    }
+
+    private boolean overlaps(PlageHoraire a, PlageHoraire b) {
+        return !a.dateFin().isBefore(b.dateDebut()) && !b.dateFin().isBefore(a.dateDebut());
+    }
 }
