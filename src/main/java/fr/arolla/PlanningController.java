@@ -4,7 +4,7 @@ public class PlanningController {
 
     private final PlanningService planningService = new PlanningService();
 
-    // POST
+    // POST /api/plannings
     public PlanningResponse createPlanning(PlanningRequest planningRequest) {
         try {
             planningService.save(planningRequest);

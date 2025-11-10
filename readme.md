@@ -66,3 +66,5 @@ Objet du kata :
 
 Refactorer le code existant pour améliorer sa lisibilité, sa maintenabilité et son extensibilité, tout en conservant la
 logique métier décrite ci-dessus. La cible est d'avoir une architecture hexagonale claire.
+
+À noter : on peut changer le contrat d'interface si besoin, car on estime être maître du front et du back en même temps.
