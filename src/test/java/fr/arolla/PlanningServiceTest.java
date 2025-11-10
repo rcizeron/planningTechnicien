@@ -69,8 +69,8 @@ class PlanningServiceTest {
                                                       List.of());
         InvalidParameterException ex = assertThrows(InvalidParameterException.class, () -> service.collecter(request));
         String msg = ex.getMessage();
-        assertTrue(msg.contains("planningDeBase[0] : dateDebut doit être avant dateFin") || msg.contains(
-                "planningDeBase[0] :"));
+        assertTrue(msg.contains(
+                "planningDeBase[PlageHoraire[dateDebut=2025-01-02T12:00, dateFin=2025-01-02T10:00]] : dateDebut doit être avant dateFin"));
         verify(repository, never()).findById(anyInt(), anyInt());
         verify(repository, never()).save(any());
     }
