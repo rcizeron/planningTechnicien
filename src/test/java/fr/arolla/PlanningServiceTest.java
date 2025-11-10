@@ -1,5 +1,9 @@
 package fr.arolla;
 
+import fr.arolla.domain.Absences;
+import fr.arolla.domain.PlageHoraire;
+import fr.arolla.domain.PlanningDeBase;
+import fr.arolla.domain.SortiesAstreintes;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -40,7 +44,7 @@ class PlanningServiceTest {
 
     @Test
     void save_invalidIds_throwsWithMessages() {
-        PlanningRequest request = new PlanningRequest(0, 0, List.of(), List.of(), List.of(), List.of());
+        PlanningRequest request = new PlanningRequest(0, 0, null, null, null, null);
         InvalidParameterException ex = assertThrows(InvalidParameterException.class, () -> service.save(request));
         String msg = ex.getMessage();
         // vérifie que les deux messages d'erreur sur les ids sont présents
@@ -54,7 +58,15 @@ class PlanningServiceTest {
         LocalDateTime start = LocalDateTime.of(2025, 1, 2, 12, 0);
         LocalDateTime end = LocalDateTime.of(2025, 1, 2, 10, 0); // end before start
         PlageHoraire bad = new PlageHoraire(start, end);
-        PlanningRequest request = new PlanningRequest(1, 1, List.of(bad), List.of(), List.of(), List.of());
+
+        PlanningDeBase base = new PlanningDeBase(List.of(bad));
+
+        PlanningRequest request = new PlanningRequest(1,
+                                                      1,
+                                                      base,
+                                                      new Absences(List.of()),
+                                                      new SortiesAstreintes(List.of()),
+                                                      List.of());
         InvalidParameterException ex = assertThrows(InvalidParameterException.class, () -> service.save(request));
         String msg = ex.getMessage();
         assertTrue(msg.contains("planningDeBase[0] : dateDebut doit être avant dateFin") || msg.contains(
@@ -71,9 +83,9 @@ class PlanningServiceTest {
 
         PlanningRequest request = new PlanningRequest(1,
                                                       1,
-                                                      List.of(),
-                                                      List.of(),
-                                                      List.of(),
+                                                      new PlanningDeBase(List.of()),
+                                                      new Absences(List.of()),
+                                                      new SortiesAstreintes(List.of()),
                                                       Arrays.asList(nullEvp, emptyType, noDate));
 
         InvalidParameterException ex = assertThrows(InvalidParameterException.class, () -> service.save(request));
@@ -92,7 +104,11 @@ class PlanningServiceTest {
         LocalDateTime b2 = LocalDateTime.of(2025, 3, 3, 13, 0);
         PlageHoraire base = new PlageHoraire(a1, a2);
         PlageHoraire ast = new PlageHoraire(b1, b2);
-        PlanningRequest request = new PlanningRequest(1, 1, List.of(base), List.of(), List.of(ast), List.of());
+
+        PlanningDeBase basePlage = new PlanningDeBase(List.of(base));
+        SortiesAstreintes astPlage = new SortiesAstreintes(List.of(ast));
+
+        PlanningRequest request = new PlanningRequest(1, 1, basePlage, new Absences(List.of()), astPlage, List.of());
         InvalidParameterException ex = assertThrows(InvalidParameterException.class, () -> service.save(request));
         String msg = ex.getMessage();
         assertTrue(msg.contains("Chevauchement entre planningDeBase[0] et sortiesAstreintes[0]") || msg.contains(
@@ -112,7 +128,10 @@ class PlanningServiceTest {
         PlageHoraire base = new PlageHoraire(d1, d2);
         PlageHoraire ast = new PlageHoraire(d3, d4);
 
-        PlanningRequest request = new PlanningRequest(10, 42, List.of(base), List.of(), List.of(ast), List.of());
+        PlanningDeBase basePlage = new PlanningDeBase(List.of(base));
+        SortiesAstreintes astPlage = new SortiesAstreintes(List.of(ast));
+
+        PlanningRequest request = new PlanningRequest(10, 42, basePlage, new Absences(List.of()), astPlage, List.of());
 
         when(repository.findById(10, 42)).thenReturn(Optional.empty());
 
@@ -132,10 +151,19 @@ class PlanningServiceTest {
         LocalDateTime d1 = LocalDateTime.of(2025, 6, 6, 8, 0);
         LocalDateTime d2 = LocalDateTime.of(2025, 6, 6, 12, 0);
         PlageHoraire base = new PlageHoraire(d1, d2);
-        PlanningRequest request = new PlanningRequest(20, 7, List.of(base), List.of(), List.of(), List.of());
+
+        PlanningDeBase basePlage = new PlanningDeBase(List.of(base));
+
+
+        PlanningRequest request = new PlanningRequest(20,
+                                                      7,
+                                                      basePlage,
+                                                      new Absences(List.of()),
+                                                      new SortiesAstreintes(List.of()),
+                                                      List.of());
 
         // existing planning has statut different from EN_ATTENTE
-        PlanningDTO existing = new PlanningDTO(20, 7, List.of(), List.of(), List.of(), List.of(), 0.0, "VALIDE");
+        PlanningDTO existing = new PlanningDTO(20, 7, null, null, null, null, 0.0, "VALIDE");
         when(repository.findById(20, 7)).thenReturn(Optional.of(existing));
 
         service.save(request);

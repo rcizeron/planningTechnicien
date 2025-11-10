@@ -1,9 +1,9 @@
 package fr.arolla;
 
+import fr.arolla.domain.PlageHoraire;
+
 import java.security.InvalidParameterException;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -35,9 +35,24 @@ public class PlanningService {
             errors.add("idTechnicien doit être supérieur à 0");
         }
 
-        validatePlages("planningDeBase", request.planningDeBase(), errors);
-        validatePlages("absences", request.absences(), errors);
-        validatePlages("sortiesAstreintes", request.sortiesAstreintes(), errors);
+        if (request.planningDeBase() == null) {
+            errors.add("planningDeBase ne peut pas être null");
+        }
+        if (request.absences() == null) {
+            errors.add("absences ne peut pas être null");
+        }
+        if (request.sortiesAstreintes() == null) {
+            errors.add("sortiesAstreintes ne peut pas être null");
+        }
+
+        if (!errors.isEmpty()) {
+            throw new InvalidParameterException("Validation errors: " + String.join("; ", errors));
+        }
+
+        errors.addAll(request.planningDeBase().validerPlage());
+        errors.addAll(request.absences().validerPlage());
+        errors.addAll(request.sortiesAstreintes().validerPlage());
+
 
         if (request.evps() != null) {
             for (int i = 0; i < request.evps().size(); i++) {
@@ -57,16 +72,16 @@ public class PlanningService {
 
         // cross-list overlap checks: ensure no overlap between planningDeBase and astreintes
         checkCrossOverlaps("planningDeBase",
-                           request.planningDeBase(),
+                           request.planningDeBase().plagesHoraire(),
                            "sortiesAstreintes",
-                           request.sortiesAstreintes(),
+                           request.sortiesAstreintes().plagesHoraire(),
                            errors);
 
         // cross-list overlap checks: ensure no overlap between absences and astreintes
         checkCrossOverlaps("absences",
-                           request.absences(),
+                           request.absences().plagesHoraire(),
                            "sortiesAstreintes",
-                           request.sortiesAstreintes(),
+                           request.sortiesAstreintes().plagesHoraire(),
                            errors);
 
         if (!errors.isEmpty()) {
@@ -75,9 +90,9 @@ public class PlanningService {
 
         // calcul du total travailé dans la semaine (en heures)
         long minutes = 0;
-        minutes += minutesForList(request.planningDeBase());
-        minutes += minutesForList(request.sortiesAstreintes());
-        minutes -= minutesForList(request.absences());
+        minutes += minutesForList(request.planningDeBase().plagesHoraire());
+        minutes += minutesForList(request.sortiesAstreintes().plagesHoraire());
+        minutes -= minutesForList(request.absences().plagesHoraire());
         double totalHeures = Math.max(0, minutes / 60.0);
         totalHeures = Math.round(totalHeures * 100.0) / 100.0;
 
@@ -89,52 +104,15 @@ public class PlanningService {
         PlanningDTO dto = new PlanningDTO(
                 request.idSemaine(),
                 request.idTechnicien(),
-                request.planningDeBase(),
-                request.absences(),
-                request.sortiesAstreintes(),
+                request.planningDeBase().plagesHoraire(),
+                request.absences().plagesHoraire(),
+                request.sortiesAstreintes().plagesHoraire(),
                 request.evps(),
                 totalHeures,
                 statut
         );
 
         planningRepository.save(dto);
-    }
-
-    private void validatePlages(String name, List<PlageHoraire> plages, List<String> errors) {
-        if (plages == null) return;
-
-        for (int i = 0; i < plages.size(); i++) {
-            PlageHoraire p = plages.get(i);
-            if (p == null) {
-                errors.add(name + "[" + i + "] est null");
-                continue;
-            }
-            LocalDateTime debut = p.dateDebut();
-            LocalDateTime fin = p.dateFin();
-            if (debut == null) {
-                errors.add(name + "[" + i + "].dateDebut est null");
-            }
-            if (fin == null) {
-                errors.add(name + "[" + i + "].dateFin est null");
-            }
-            if (debut != null && fin != null && !debut.isBefore(fin)) {
-                errors.add(name + "[" + i + "] : dateDebut doit être avant dateFin");
-            }
-        }
-
-        // check overlaps within same list
-        List<PlageHoraire> copy = new ArrayList<>();
-        for (PlageHoraire p : plages) {
-            if (p != null && p.dateDebut() != null && p.dateFin() != null) copy.add(p);
-        }
-        copy.sort(Comparator.comparing(PlageHoraire::dateDebut));
-        for (int i = 1; i < copy.size(); i++) {
-            PlageHoraire prev = copy.get(i - 1);
-            PlageHoraire curr = copy.get(i);
-            if (!prev.dateFin().isBefore(curr.dateDebut())) {
-                errors.add(name + " : chevauchement entre " + prev + " et " + curr);
-            }
-        }
     }
 
     private void checkCrossOverlaps(String nameA,

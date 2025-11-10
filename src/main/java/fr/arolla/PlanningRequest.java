@@ -1,13 +1,17 @@
 package fr.arolla;
 
+import fr.arolla.domain.Absences;
+import fr.arolla.domain.PlanningDeBase;
+import fr.arolla.domain.SortiesAstreintes;
+
 import java.util.List;
 
 public record PlanningRequest(
         int idSemaine,
         int idTechnicien,
-        List<PlageHoraire> planningDeBase,
-        List<PlageHoraire> absences,
-        List<PlageHoraire> sortiesAstreintes,
+        PlanningDeBase planningDeBase,
+        Absences absences,
+        SortiesAstreintes sortiesAstreintes,
         List<Evp> evps
 ) {
 }

@@ -1,5 +1,7 @@
 package fr.arolla;
 
+import fr.arolla.domain.PlageHoraire;
+
 import java.util.List;
 
 public record PlanningDTO(
