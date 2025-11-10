@@ -1,6 +1,6 @@
 package fr.arolla;
 
-import fr.arolla.dao.PlanningSQLRepository;
+import fr.arolla.dao.SuiviSQLRepository;
 import fr.arolla.domain.SuiviDeTempsService;
 import fr.arolla.domain.entities.Absences;
 import fr.arolla.domain.entities.Evp;
@@ -36,10 +36,15 @@ import static org.mockito.Mockito.when;
 class SuiviDeTempsServiceTest {
 
     @Mock
-    private PlanningSQLRepository repository;
+    private SuiviSQLRepository repository;
 
     @InjectMocks
     private SuiviDeTempsService service;
+
+
+    // TODO des méthodes de validation ont été déplacées dans les classes des entités
+    // il faudrait ajouter des tests unitaires pour ces méthodes de validation
+
 
     @Test
     void collecter_nullRequest_throws() {

@@ -5,7 +5,7 @@ import fr.arolla.domain.entities.PlageHoraire;
 
 import java.util.List;
 
-public record PlanningDTO(
+public record SuiviEntite(
         int idSemaine,
         int idTechnicien,
         List<PlageHoraire> planningDeBase,
