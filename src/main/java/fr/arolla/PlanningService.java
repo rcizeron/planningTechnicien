@@ -10,14 +10,14 @@ import java.util.Optional;
 
 public class PlanningService {
 
-    private final PlanningRepository planningRepository;
+    private final PlanningSQLRepository planningRepository;
 
-    public PlanningService(PlanningRepository repository) {
+    public PlanningService(PlanningSQLRepository repository) {
         this.planningRepository = repository;
     }
 
     public PlanningService() {
-        this.planningRepository = new PlanningRepository();
+        this.planningRepository = new PlanningSQLRepository();
     }
 
     public void save(PlanningRequest request) {

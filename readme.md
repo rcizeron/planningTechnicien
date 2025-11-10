@@ -1,104 +1,68 @@
-technicien
-manager
+Module de Validation Hebdomadaire (Suivi de Temps)
+===========
+Ce projet implémente un nouveau module destiné aux Managers pour la validation du suivi de temps hebdomadaire de leurs
+équipes.
 
-nouveau module : validation hebdomadaire suivi de temps
-par exemple astreinte, absence, disponibilité suivant emploi du temps
-l'astreinte sont les horaires hors emploie du temps
-validation le lundi matin
+### 📜 Contexte Métier
 
-élément variable
-il y a des primes
-panier repas
-incommodité
-salissure
-transport
+L'objectif de l'application est de collecter, valider et permettre l'approbation des activités hebdomadaires des
+techniciens, incluant le planning de base, les absences, les astreintes et les éléments variables de paie (EVP).
 
-travaux programmés
-et heures excédentaires
+#### 🎯 _Ici, nous implémenterons uniquement la partie collecte et validation des données hebdomadaires._
 
-------------------
-technicien
-manager
+### ✨ Fonctionnalités Clés
 
-la semaine est du dimanche au samedi
-c'est le manager qui valide ou pas
-les statuts de la semaine :
-en attente
-approuvée
-à controller
+- Réception des données hebdomadaires : Intégration des plannings, absences, et sorties d'astreinte (du dimanche au
+  samedi).
 
-réception de données hebdomadaire pour un technicien
-validation par le manager
-modification par le manager
+- Gestion des Éléments Variables (EVP) : Suivi des demandes de primes (panier repas, transport, incommodité, salissure).
 
-données hebdo
-une semaine du dimanche au samedi
-planning de base
-List<Objet<date heure début, date heure fin>>
-les absences
-List<Objet<date heure début, date heure fin>>
-sorties astreintes
-List<Objet<date heure début, date heure fin>>
-demandes evp
-type(panier repas, transport) et date et statut
-id technicien
- 
-================
+- Système de Statuts : Les semaines sont suivies via des statuts (En attente, Approuvée, À contrôler) qui évoluent selon
+  les actions du manager et les nouvelles réceptions de données.
 
-sauvegarde en base + statut + calcul total semaine
-vérification de non-chevauchement des plages horaires des différentes listes
-temps travailler : addition de temps sans chevauchement de base et sortie astreinte avec soustraction des absences
-une sortie d'astreinte ne peut être en même temps qu'une absence => si incohérence tout est rejeté
-statut semaine en attente
+- Calcul Automatisé : Le système calcule le temps de travail total en vérifiant la cohérence et le non-chevauchement des
+  plages horaires.
 
-nouvelle réception pour un technicien déjà reçu
-vérification sauvegarde du nouveau avec mêmes règles
-écrase ce qu'on avait
-si statut précédent "en attente" alors nouveau statut "en attente"
-si statut précédent "approuvé" alors nouveau statut "à controller"
+### 👨‍💻 Rôles
 
+- Technicien : (Implicite) Génère les données de suivi de temps.
 
-___
+- Manager : Valide, modifie et approuve les données hebdomadaires de son équipe. La validation se fait typiquement le
+  lundi matin.
 
+### 📋 Règles de Gestion Métier
 
-controller
+Voici les règles de gestion (logique métier) identifiées pour le fonctionnement du module :
 
-- reçoit les données
-  service
-- vérifie règle métier et appel ou pas la DAO
-  dao
-- sauvegarde en base
+#### **1. Période et Définitions**
 
-RequestToto(
-planningDeBase List<Plage horaires>,
-absences List<Plage horaires>,
-sortiesAstreinte List<Plage horaires>,
-evp list<evp>,
-id technicien,
-id semaine
-)
-Plage horaires:
-date heure début
-date heure fin
+- La semaine de travail est définie du dimanche au samedi.
+- Les astreintes concernent les horaires effectués en dehors de l'emploi du temps (planning de base).
+- Le processus de validation managériale est prévu (cible) le lundi matin.
 
-evp:
-type,
-date
-statut
+#### **2. Validation et Calcul (Soumission Initiale)**
 
-statut semaine
+- Non-chevauchement :
+    - Les plages horaires du planning de base et des astreintes ne doivent pas se chevaucher entre elles.
+    - Les plages horaires des absences et des astreintes ne doivent pas se chevaucher entre elles.
+- Un EVP doit avoir un type et une date non null
+- Rejet automatique : Si une incohérence est détectée lors de la réception des données, la soumission est rejetée.
+- Calcul du temps travaillé : Temps travaillé = (Somme des Plannings de base + Somme des Sorties d'astreinte) - Somme
+  des Absences (en respectant le non-chevauchement).
 
-total semaine:
-id semaine
-nb dheure
+#### **3. Statuts et Mises à Jour**
 
-____
+Une semaine possède un statut : "En attente", "Approuvée", ou "À contrôler".
 
-// type ( PLANNING_BASE, ABSENCE, SORTIE_ASTREINTE)
+- Cas 1 (Nouvelle soumission sur "En attente") : Si de nouvelles données sont reçues pour une semaine au statut "En
+  attente", les anciennes données sont écrasées et le statut reste "En attente".
 
-===============
+- Cas 2 (Nouvelle soumission sur "Approuvée") : Si de nouvelles données sont reçues pour une semaine déjà "Approuvée" (
+  par un manager), les anciennes données sont écrasées et le statut bascule à "À contrôler" (nécessite une nouvelle
+  validation managériale).
 
-validiation manager
-récupération de datas de la base, validiation ou modification
+Objet du kata :
+=
 
-possibilité de modification de demandes evp ou sortie astreinte
+Refactorer le code existant pour améliorer sa lisibilité, sa maintenabilité et son extensibilité, tout en conservant la
+logique métier décrite ci-dessus. La cible est d'avoir une architecture hexagonale claire.

@@ -2,7 +2,7 @@ package fr.arolla;
 
 import java.util.Optional;
 
-public class PlanningRepository {
+public class PlanningSQLRepository {
 
     public void save(PlanningDTO planningDTO) {
         // Sauvegarde en base de données (simulée)

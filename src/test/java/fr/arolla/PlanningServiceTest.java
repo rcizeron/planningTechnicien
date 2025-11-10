@@ -27,7 +27,7 @@ import static org.mockito.Mockito.when;
 class PlanningServiceTest {
 
     @Mock
-    private PlanningRepository repository;
+    private PlanningSQLRepository repository;
 
     @InjectMocks
     private PlanningService service;
